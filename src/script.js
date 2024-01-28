@@ -2,6 +2,10 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+
+
 /**
  * Base
  */
@@ -15,8 +19,106 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
+ * Models
+*/
+const dracoLoader = new DRACOLoader()
+
+dracoLoader.setDecoderPath('/draco/')
+
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
+
+let mixer = null
+
+// Fox
+gltfLoader.load(
+    '/models/Fox/glTF/Fox.gltf',
+    (fox) => {
+        console.log('success')
+        console.log(fox)
+
+        mixer = new THREE.AnimationMixer(fox.scene)
+        // const action = mixer.clipAction(fox.animations[0])
+        // const action = mixer.clipAction(fox.animations[1])
+        const action = mixer.clipAction(fox.animations[2])
+
+        action.play()
+
+        fox.scene.scale.set(0.025, 0.025, 0.025)
+        scene.add(fox.scene)
+
+    },
+    (progress) => {
+        console.log('progress')
+        console.log(progress)
+    },
+    (error) => {
+        console.log('error')
+        console.log(error)
+    }
+)
+
+// Duck
+gltfLoader.load(
+    // '/models/Duck/glTF-Embedded/Duck.gltf',
+    // '/models/Duck/glTF-Draco/Duck.gltf',
+    // '/models/Duck/glTF-Binary/Duck.glb',
+    '/models/Duck/glTF/Duck.gltf',
+    (duck) => {
+        console.log('success')
+        console.log(duck)
+        // scene.add(gltf.scene.children[0])
+
+        // const children = [...gltf.scene.children]
+        // // while (gltf.scene.children.length) {
+        // // for (const child of gltf.scene.children) {
+        // for (const child of children) {
+        //     // scene.add(gltf.scene.children[0])
+        //     scene.add(child)
+        // }
+
+
+        duck.scene.position.set(4,0,0)
+        duck.scene.rotation.set(0,Math.PI/2,0)
+        scene.add(duck.scene)
+        
+    },
+    (progress) => {
+        console.log('progress')
+        console.log(progress)
+    },
+    (error) => {
+        console.log('error')
+        console.log(error)
+    }
+)
+
+// Helmet
+gltfLoader.load(
+
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (helmet) => {
+        console.log('success')
+        console.log(helmet)
+
+        helmet.scene.scale.set(5, 5, 5)
+        helmet.scene.position.set(-4,0,0)
+        scene.add(helmet.scene)
+
+    },
+    (progress) => {
+        console.log('progress')
+        console.log(progress)
+    },
+    (error) => {
+        console.log('error')
+        console.log(error)
+    }
+)
+
+/**
  * Floor
- */
+*/
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(10, 10),
     new THREE.MeshStandardMaterial({
@@ -104,6 +206,9 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
+
+    // Update mixer
+    mixer !== null ? mixer.update(deltaTime) : mixer = null
 
     // Update controls
     controls.update()
